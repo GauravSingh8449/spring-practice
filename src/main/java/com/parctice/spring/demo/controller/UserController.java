@@ -1,8 +1,8 @@
 package com.parctice.spring.demo.controller;
 
 import com.parctice.spring.demo.model.User;
-import com.parctice.spring.demo.service.UserService;
 import com.parctice.spring.demo.service.EmailService;
+import com.parctice.spring.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -136,28 +136,26 @@ public class UserController {
 
         User freshUser = userService.findById(user.getId());
         model.addAttribute("user", freshUser);
-        return "settings"; // settings.html
+        return "settings";
     }
 
-    // ================= Handle Settings Update (Old Password Verification + Email) =================
+    // ================= Handle Settings Update (Old Password + Email) =================
     @PostMapping("/settings/update")
     public String updateSettings(@ModelAttribute User user, HttpSession session, Model model) {
         User loggedUser = (User) session.getAttribute("loggedInUser");
         if (loggedUser == null) return "redirect:/login";
 
-        // Check old password
         if (user.getOldPassword() == null || !loggedUser.getPassword().equals(user.getOldPassword())) {
             model.addAttribute("errorMessage", "Old password is incorrect!");
             model.addAttribute("user", loggedUser);
             return "settings";
         }
 
-        // Update password and email
         loggedUser.setPassword(user.getPassword());
         loggedUser.setEmail(user.getEmail());
         userService.updateUser(loggedUser);
 
-        // ✅ Send email about settings update
+        // Send email about settings update
         String subject = "Your account settings have been updated";
         String body = "Hi " + loggedUser.getUsername() + ",\n\n" +
                 "Your account settings (email/password) have been successfully updated.\n\n" +
@@ -173,7 +171,7 @@ public class UserController {
         return "settings";
     }
 
-    // ================= Handle Profile Picture Upload (AJAX + Crop) =================
+    // ================= Handle Profile Picture Upload =================
     @PostMapping("/profile/upload")
     @ResponseBody
     public Map<String, Object> uploadProfilePic(@RequestParam("file") MultipartFile file,
