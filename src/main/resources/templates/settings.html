@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>⚙️ Settings - Spring Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <!-- ✅ Responsive meta -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -13,11 +14,14 @@
             align-items: center;
             font-family: 'Poppins', sans-serif;
             color: #fff;
+            padding: 15px; /* ✅ Mobile safe padding */
         }
 
         .settings-wrapper {
             display: flex;
-            width: 950px;
+            flex-wrap: wrap; /* ✅ Allow stacking on small screens */
+            width: 100%;
+            max-width: 950px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             border-radius: 20px;
@@ -35,7 +39,7 @@
         .profile-panel {
             background: rgba(0,0,0,0.3);
             padding: 40px 30px;
-            width: 35%;
+            flex: 1 1 300px; /* ✅ Flexible width */
             text-align: center;
         }
 
@@ -56,31 +60,13 @@
         .profile-panel p {
             font-size: 0.9rem;
             color: #bbb;
-        }
-
-        .sidebar-links {
-            margin-top: 30px;
-            text-align: left;
-        }
-
-        .sidebar-links a {
-            display: block;
-            padding: 12px 15px;
-            border-radius: 10px;
-            color: #fff;
-            text-decoration: none;
-            margin-bottom: 8px;
-            transition: all 0.3s;
-        }
-
-        .sidebar-links a:hover, .sidebar-links a.active {
-            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            word-wrap: break-word;
         }
 
         /* Right Panel */
         .settings-form {
             padding: 40px;
-            width: 65%;
+            flex: 2 1 500px; /* ✅ Flexible width */
         }
 
         .settings-form h2 {
@@ -156,6 +142,20 @@
             from {opacity: 0; transform: translateX(100px);}
             to {opacity: 1; transform: translateX(0);}
         }
+
+        /* ✅ Mobile Adjustments */
+        @media (max-width: 768px) {
+            .settings-wrapper {
+                flex-direction: column;
+            }
+            .profile-panel, .settings-form {
+                width: 100%;
+                padding: 25px 20px;
+            }
+            .settings-form h2 {
+                font-size: 1.3rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -215,7 +215,7 @@
             </div>
 
             <!-- Buttons -->
-            <div class="d-flex justify-content-between mt-4">
+            <div class="d-flex justify-content-between mt-4 flex-wrap gap-2">
                 <a th:href="@{/home}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
             </div>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #eef2f3, #d9e4f5);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .dashboard-card {
+            border-radius: 20px;
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+            transition: all 0.3s ease-in-out;
+            padding: 25px;
+            background: #fff;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0px 12px 25px rgba(0,0,0,0.2);
+        }
+
+        .profile-img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #007bff;
+            margin-bottom: 10px;
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #fff;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .btn-custom {
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-weight: 500;
+        }
+
+        .table-custom th {
+            background: #2575fc;
+            color: #fff;
+        }
+
+        .table-custom tr:hover {
+            background: #f1f5ff;
+        }
+
+        .back-btn { margin-top: 15px; }
+
+        /* ✅ Responsive adjustments */
+        @media (max-width: 768px) {
+            .section-title { font-size: 1.4rem; }
+            .profile-img { width: 90px; height: 90px; }
+            .dashboard-card { padding: 18px; }
+            .btn-custom { font-size: 14px; padding: 6px 15px; }
+            table { font-size: 14px; }
+        }
+
+        @media (max-width: 576px) {
+            .row.g-4 { row-gap: 1rem; }
+            .section-title { font-size: 1.2rem; }
+        }
+
+        /* Mobile card view for documents */
+        .doc-card {
+            margin-bottom: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 15px;
+            background: #fff;
+        }
+
+        .doc-card h5 { font-size: 1rem; margin-bottom: 10px; }
+        .doc-card .btn { font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <h2 class="mb-4 text-center section-title">📊 User Dashboard</h2>
+
+    <div class="row g-4">
+        <!-- User Info -->
+        <div class="col-md-4 col-sm-6 col-12">
+            <div class="card dashboard-card text-center">
+                <div th:if="${user.profilePicPath != null}">
+                    <img th:src="@{'/uploads/' + ${user.profilePicPath}}" class="profile-img" alt="Profile">
+                </div>
+                <div th:if="${user.profilePicPath == null}">
+                    <i class="bi bi-person-circle text-primary" style="font-size: 4rem;"></i>
+                </div>
+                <h5 class="mt-3 fw-bold" th:text="${user.username}"></h5>
+                <p class="text-muted mb-1" th:text="'Email: ' + ${user.email}"></p>
+                <span class="badge bg-success">Active</span>
+            </div>
+        </div>
+
+        <!-- Documents Summary -->
+        <div class="col-md-4 col-sm-6 col-12">
+            <div class="card dashboard-card card-gradient text-center">
+                <i class="bi bi-folder2-open" style="font-size: 2.5rem;"></i>
+                <h5 class="mt-3 fs-3 fw-bold" th:text="${docCount}"></h5>
+                <p class="mb-2">Documents Uploaded</p>
+                <a th:href="@{/documents}" class="btn btn-light btn-sm btn-custom">📂 View All Docs</a>
+            </div>
+        </div>
+
+        <!-- Last Login -->
+        <div class="col-md-4 col-sm-6 col-12">
+            <div class="card dashboard-card text-center">
+                <i class="bi bi-clock-history text-warning" style="font-size: 2.5rem;"></i>
+                <h6 class="mt-3 fw-bold" th:text="${#temporals.format(user.lastLogin, 'dd MMM yyyy HH:mm')}"></h6>
+                <p class="text-muted">Last Login</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Documents -->
+    <div class="row mt-5">
+        <!-- Desktop/Table view -->
+        <div class="d-none d-md-block col-12">
+            <div class="card dashboard-card">
+                <h4 class="mb-3">📄 Latest Documents</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom align-middle">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Document Name</th>
+                                <th>Uploaded On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="doc, iterStat : ${latestDocs}">
+                                <td th:text="${iterStat.index + 1}"></td>
+                                <td th:text="${doc.fileName}"></td>
+                                <td th:text="${#temporals.format(doc.uploadedAt, 'dd MMM yyyy HH:mm')}"></td>
+                                <td>
+                                    <a th:href="@{'/documents/preview/' + ${doc.id}}" class="btn btn-sm btn-primary me-1" target="_blank">
+                                        <i class="bi bi-eye"></i> Preview
+                                    </a>
+                                    <a th:href="@{'/documents/download/' + ${doc.id}}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(latestDocs)}">
+                                <td colspan="4" class="text-center text-muted">No documents uploaded yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile/Tablet Card view -->
+        <div class="d-block d-md-none col-12">
+            <div th:each="doc, iterStat : ${latestDocs}" class="doc-card">
+                <h5 th:text="${iterStat.index + 1} + '. ' + ${doc.fileName}"></h5>
+                <p class="text-muted mb-2" th:text="'Uploaded: ' + ${#temporals.format(doc.uploadedAt, 'dd MMM yyyy HH:mm')}"></p>
+                <div class="d-flex flex-column gap-2">
+                    <a th:href="@{'/documents/preview/' + ${doc.id}}" class="btn btn-outline-primary btn-lg w-100" target="_blank">
+                        <i class="bi bi-eye"></i> Preview
+                    </a>
+                    <a th:href="@{'/documents/download/' + ${doc.id}}" class="btn btn-outline-success btn-lg w-100">
+                        <i class="bi bi-download"></i> Download
+                    </a>
+                </div>
+            </div>
+            <div th:if="${#lists.isEmpty(latestDocs)}" class="text-center text-muted">No documents uploaded yet.</div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="col-12 mt-3">
+            <a th:href="@{/home}" class="btn btn-secondary btn-sm">⬅ Back</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -141,4 +141,31 @@ public class DocumentController {
 
         return resp;
     }
+
+ // ✅ New Dashboard
+@GetMapping("/dashboard")
+public String dashboard(HttpSession session, Model model) {
+    User user = (User) session.getAttribute("loggedInUser");
+    if (user == null) {
+        return "redirect:/login";
+    }
+
+    // ✅ Upload documents count
+    int docCount = documentService.getDocumentsByUser(user.getId()).size();
+
+    // ✅ Latest 5 uploaded documents
+    List<Document> latestDocs = documentService.findTop5ByUserOrderByUploadedAtDesc(user.getId());
+
+    model.addAttribute("user", user);
+    model.addAttribute("docCount", docCount);
+
+    // ✅ Last login dynamically (maan ke chal rahe ki User entity me lastLogin hai)
+    model.addAttribute("lastLogin", user.getLastLogin());
+
+    // ✅ Latest docs for dashboard table
+    model.addAttribute("latestDocs", latestDocs);
+
+    return "dashboard"; // ye naya page render karega
+}
+
 }

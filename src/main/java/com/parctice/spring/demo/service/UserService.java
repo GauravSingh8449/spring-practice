@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -16,34 +17,39 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Directory to save profile pictures
-    private final String UPLOAD_DIR = "D:/uploads/"; // apne server path ke hisaab se change karo
+    private final String UPLOAD_DIR = "D:/uploads/"; // change according to your path
 
     // ================= Email availability check =================
-    public boolean isEmailAvailable(String email) {
-        return !userRepository.existsByEmail(email);
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     // ================= Username availability check =================
-    public boolean isUsernameAvailable(String username) {
-        return !userRepository.existsByUsername(username);
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 
     // ================= Register user =================
     public User registerUser(User user) {
-        if (!isEmailAvailable(user.getEmail())) {
+        if (existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already in use!");
         }
-        if (!isUsernameAvailable(user.getUsername())) {
+        if (existsByUsername(user.getUsername())) {
             throw new RuntimeException("Username already taken!");
         }
+
+        user.setEnabled(true);
+        user.setCurrentLogin(LocalDateTime.now());
         return userRepository.save(user);
     }
 
-    // ================= Login check =================
+    // ================= Login =================
     public User login(String username, String password) {
         User user = userRepository.findByUsername(username);
         if (user != null && user.getPassword().equals(password)) {
+            user.setLastLogin(user.getCurrentLogin());    // previous login
+            user.setCurrentLogin(LocalDateTime.now());    // current login
+            userRepository.save(user);
             return user;
         }
         return null;
@@ -64,7 +70,6 @@ public class UserService {
         User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        // Username lock
         existingUser.setEmail(user.getEmail());
 
         if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
@@ -82,17 +87,13 @@ public class UserService {
     public String saveProfilePicture(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) return null;
 
-        String originalFilename = file.getOriginalFilename();
-        String ext = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
         String fileName = UUID.randomUUID().toString() + ext;
 
         File dest = new File(UPLOAD_DIR + fileName);
-        if (!dest.getParentFile().exists()) {
-            dest.getParentFile().mkdirs();
-        }
+        if (!dest.getParentFile().exists()) dest.getParentFile().mkdirs();
 
         file.transferTo(dest);
-
         return fileName;
     }
 
@@ -101,7 +102,6 @@ public class UserService {
         if (user.getProfilePicPath() != null && !user.getProfilePicPath().isEmpty()) {
             File file = new File(UPLOAD_DIR + user.getProfilePicPath());
             if (file.exists()) file.delete();
-
             user.setProfilePicPath(null);
             userRepository.save(user);
         }

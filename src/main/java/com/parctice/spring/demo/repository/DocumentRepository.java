@@ -6,4 +6,9 @@ import java.util.List;
 
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     List<Document> findByUserId(Long userId);
+
+    List<Document> findTop5ByUserIdOrderByUploadedAtDesc(Long userId);
+
 }
+
+

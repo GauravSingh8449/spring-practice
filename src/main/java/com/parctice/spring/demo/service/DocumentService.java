@@ -48,6 +48,10 @@ public class DocumentService {
     public Optional<Document> getById(Long id) {
         return documentRepository.findById(id);
     }
+    
+        public List<Document> getDocumentsByUser(Long userId) {
+        return documentRepository.findByUserId(userId);
+    }
 
     public Resource getDocumentAsResource(Long id) {
         Optional<Document> docOpt = getById(id);
@@ -79,4 +83,9 @@ public class DocumentService {
         }
         return false;
     }
+
+    public List<Document> findTop5ByUserOrderByUploadedAtDesc(Long userId) {
+    return documentRepository.findTop5ByUserIdOrderByUploadedAtDesc(userId);
+}
+
 }

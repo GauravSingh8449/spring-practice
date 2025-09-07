@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,22 +32,48 @@ public class UserController {
         return "register";
     }
 
-    // ================= Handle Registration =================
-    @PostMapping("/register")
-    public String registerUser(@ModelAttribute User user, Model model) {
+    
+   // ================= Handle Registration =================
+@PostMapping("/register")
+public String registerUser(@ModelAttribute User user, Model model) {
+    try {
+        // ✅ Check if username already exists
+        if (userService.existsByUsername(user.getUsername())) {
+            model.addAttribute("user", user);
+            model.addAttribute("errorMessage", "Username already exists! Please choose another.");
+            return "register";
+        }
+
+        // ✅ Check if email already exists
+        if (userService.existsByEmail(user.getEmail())) {
+            model.addAttribute("user", user);
+            model.addAttribute("errorMessage", "Email already registered! Try logging in.");
+            return "register";
+        }
+
+        // ✅ Save user
         user.setEnabled(true);
         userService.saveUser(user);
 
-        // Send welcome email
+        // ✅ Send welcome email
         String subject = "Welcome to Our Application!";
         String body = "Hi " + user.getUsername() + ",\n\n" +
                 "Thank you for registering. You can now login using your credentials.\n\n" +
                 "Best Regards,\nSupport Team";
         emailService.sendEmail(user.getEmail(), subject, body);
 
-        model.addAttribute("message", "Registration successful! You can now login.");
-        return "login";
+        // ✅ Redirect to login page with success flag
+        return "redirect:/login?registered=true";
+
+    } catch (Exception e) {
+        // ✅ Handle unexpected errors gracefully
+        model.addAttribute("user", user);
+        model.addAttribute("errorMessage", "Something went wrong! Please try again.");
+        return "register";
     }
+}
+
+
 
     // ================= Show Login Page =================
     @GetMapping("/login")
@@ -62,8 +89,13 @@ public class UserController {
     public String loginUser(@ModelAttribute User user, HttpSession session) {
         User validUser = userService.login(user.getUsername(), user.getPassword());
         if (validUser != null) {
-            User freshUser = userService.findById(validUser.getId());
-            session.setAttribute("loggedInUser", freshUser);
+            // ✅ Handle last login properly
+            LocalDateTime previousLogin = validUser.getCurrentLogin(); // previous login
+            validUser.setLastLogin(previousLogin);                     // set lastLogin
+            validUser.setCurrentLogin(LocalDateTime.now());            // update currentLogin
+            userService.updateUser(validUser);                        // save changes
+
+            session.setAttribute("loggedInUser", validUser);
             return "redirect:/home";
         } else {
             return "redirect:/login?error=true";

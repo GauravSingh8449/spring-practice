@@ -1,6 +1,7 @@
 package com.parctice.spring.demo.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -22,15 +23,24 @@ public class User {
     @Column(nullable = false)
     private boolean enabled;
 
+    // Verification code for email verification (optional)
     private String verificationCode;
 
-    // ✅ Field to store profile picture filename
+    // Profile picture filename
     @Column(name = "profile_pic_path")
     private String profilePicPath;
 
-    // ✅ Field to store old password temporarily for settings page
+    // For settings page, old password check
     @Transient
     private String oldPassword;
+
+    // Last login timestamp
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
+
+    // Current login timestamp
+    @Column(name = "current_login")
+    private LocalDateTime currentLogin;
 
     // ================= Getters and Setters =================
     public Long getId() { return id; }
@@ -56,4 +66,10 @@ public class User {
 
     public String getOldPassword() { return oldPassword; }
     public void setOldPassword(String oldPassword) { this.oldPassword = oldPassword; }
+
+    public LocalDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
+
+    public LocalDateTime getCurrentLogin() { return currentLogin; }
+    public void setCurrentLogin(LocalDateTime currentLogin) { this.currentLogin = currentLogin; }
 }
