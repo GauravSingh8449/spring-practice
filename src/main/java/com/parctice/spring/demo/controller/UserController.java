@@ -32,7 +32,7 @@ public class UserController {
         return "register";
     }
 
-    
+
    // ================= Handle Registration =================
 @PostMapping("/register")
 public String registerUser(@ModelAttribute User user, Model model) {
@@ -239,4 +239,14 @@ public String registerUser(@ModelAttribute User user, Model model) {
         session.invalidate();
         return "redirect:/login";
     }
+
+    @Controller
+public class PageController {
+
+    @GetMapping("/payment-page")
+    public String paymentPage() {
+        return "payment"; // ye payment.html ko load karega (resources/templates/payment.html)
+    }
+}
+
 }
